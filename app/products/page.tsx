@@ -1,33 +1,74 @@
-// app/products/page.tsx
-import { getAllProducts } from "@/services/products.service";
-import { ProductCard } from "@/components/product/ProductCard";
+import { ProductList } from "@/components/product/ProductList";
+import { ProductFilters } from "@/components/product/ProductFilters";
+import { filterProducts } from "@/services/products.service";
 
-export const dynamic = "force-dynamic"; // tạm cho dễ dev
+export default async function ProductsPage(props: {
+  searchParams?: { [key: string]: string | undefined };
+}) {
+  const searchParams = await props.searchParams; // 👈 unwrap
 
-export default async function ProductsPage() {
-  const products = await getAllProducts();
+  const buildAttrs = () => {
+    const attrs: { [key: string]: string[] } = {};
 
+    if (!searchParams) return attrs;
+
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (
+        [
+          "q",
+          "brand",
+          "rating",
+          "sort",
+          "category",
+          "priceMin",
+          "priceMax",
+        ].includes(key)
+      )
+        return;
+
+      // Convert value -> string[]
+      if (Array.isArray(value)) {
+        attrs[key] = value;
+      } else if (typeof value === "string") {
+        attrs[key] = [value];
+      }
+    });
+
+    return attrs;
+  };
+
+  const filters = {
+    q: searchParams?.q as string | undefined,
+    category: searchParams?.category as string | undefined,
+    brand: searchParams?.brand
+      ? Array.isArray(searchParams.brand)
+        ? searchParams.brand
+        : [searchParams.brand]
+      : undefined,
+    rating: searchParams?.rating ? Number(searchParams.rating) : undefined,
+    priceMin: searchParams?.priceMin
+      ? Number(searchParams.priceMin)
+      : undefined,
+    priceMax: searchParams?.priceMax
+      ? Number(searchParams.priceMax)
+      : undefined,
+    attrs: buildAttrs(),
+  };
+  const products = filterProducts(filters);
   return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-bold">All Products</h1>
+    <section className="max-w-7xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Sản phẩm</h1>
 
-      {/* Filter/search box basic */}
-      <div className="flex flex-wrap items-center gap-2 rounded-md bg-white p-3 shadow-sm">
-        <input
-          className="flex-1 rounded-md border px-3 py-2 text-sm"
-          placeholder="Search products..."
-        />
-        <select className="rounded-md border px-3 py-2 text-sm">
-          <option>Sort by latest</option>
-          <option>Price: low to high</option>
-          <option>Price: high to low</option>
-        </select>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6">
+        {/* Sidebar Filters */}
+        <div className="md:sticky md:top-24 h-fit">
+          <ProductFilters category={filters.category} />
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+        {/* Products Content */}
+        <div>
+          <ProductList products={products} />
+        </div>
       </div>
     </section>
   );

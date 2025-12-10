@@ -1,30 +1,32 @@
-// components/ui/Button.tsx
-import React from "react";
 import clsx from "clsx";
+import { ButtonHTMLAttributes } from "react";
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary";
+  size?: "sm" | "md" | "lg";
 };
 
 export function Button({
-  children,
-  className,
   variant = "primary",
-  ...props
-}: ButtonProps) {
+  size = "md",
+  className,
+  ...rest
+}: Props) {
   return (
     <button
+      {...rest}
       className={clsx(
-        "rounded-md px-4 py-2 text-sm font-medium transition",
-        variant === "primary" &&
-          "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800",
+        "rounded-lg font-medium transition-all",
+        variant === "primary" && "bg-blue-600 text-white hover:bg-blue-700",
         variant === "secondary" &&
-          "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+          "bg-gray-200 text-gray-700 hover:bg-gray-300",
+
+        size === "sm" && "px-2 py-1 text-xs",
+        size === "md" && "px-4 py-2 text-sm",
+        size === "lg" && "px-6 py-3 text-base",
+
         className
       )}
-      {...props}
-    >
-      {children}
-    </button>
+    />
   );
 }

@@ -14,7 +14,7 @@ export function ProductCard({ product }: { product: Product }) {
 
       <h3 className="mb-1 text-sm font-semibold">{product.name}</h3>
       <p className="mb-3 text-sm font-bold text-blue-600">
-        ${product.price.toFixed(2)}
+        ${product.basePrice.toFixed(2)}
       </p>
 
       <div className="mt-auto flex items-center gap-2">
@@ -25,7 +25,6 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
         <Button
           onClick={() => {
-            alert("Clicked!");
             addToCart(product);
           }}
           className="flex-1"

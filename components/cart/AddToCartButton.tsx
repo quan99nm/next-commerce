@@ -11,7 +11,6 @@ export function AddToCartButton({ product }: { product: Product }) {
     <Button
       className="flex-1"
       onClick={() => {
-        console.log("Add to cart from detail:", product);
         addToCart(product);
       }}
     >

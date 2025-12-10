@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ShoppingCart, Menu, User } from "lucide-react";
+import { ShoppingCart, Menu, User, Search } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { Button } from "@/components/ui/Button";
+import { MiniCart } from "../cart/MiniCart";
+import { SearchBar } from "../search/SearchBar";
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const items = useCartStore((state) => state.items);
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
+  const [openCart, setOpenCart] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b">
@@ -30,20 +33,14 @@ export function Header() {
 
         {/* CENTER: Search bar (Desktop only) */}
         <div className="hidden md:flex flex-1 justify-center px-8">
-          <div className="w-full max-w-lg flex bg-slate-100 rounded-full p-1">
-            <input
-              type="text"
-              placeholder="Bạn tìm gì hôm nay?"
-              className="flex-1 px-4 py-1 text-sm bg-transparent outline-none"
-            />
-            <Button className="rounded-full px-4 text-xs bg-blue-600 hover:bg-blue-700">
-              Tìm kiếm
-            </Button>
-          </div>
+          <SearchBar />
         </div>
 
         {/* RIGHT: User + Cart */}
-        <div className="flex items-center gap-3">
+
+        {/* RIGHT: User + Cart */}
+        <div className="flex items-center gap-4">
+          {/* Login (Desktop only) */}
           <Link
             href="/login"
             className="hidden md:flex items-center gap-1 text-slate-600 hover:text-blue-600"
@@ -52,19 +49,25 @@ export function Header() {
             <span className="text-xs font-medium">Đăng nhập</span>
           </Link>
 
-          <Link href="/cart" className="relative">
-            <ShoppingCart
-              size={22}
-              className="text-slate-700 hover:text-blue-600"
-            />
-            {count > 0 && (
-              <span className="absolute -top-1 -right-2 bg-blue-600 text-white text-[10px] font-bold px-1.5 rounded-full">
-                {count}
-              </span>
-            )}
-          </Link>
+          {/* Cart icon mở MiniCart */}
+          <div className="relative">
+            <button className="relative" onClick={() => setOpenCart(!openCart)}>
+              <ShoppingCart
+                size={22}
+                className="text-slate-700 hover:text-blue-600"
+              />
+              {count > 0 && (
+                <span className="absolute -top-1 -right-2 bg-blue-600 text-white text-[10px] font-bold px-1.5 rounded-full">
+                  {count}
+                </span>
+              )}
+            </button>
+
+            {openCart && <MiniCart />}
+          </div>
         </div>
       </div>
+
       {/* DESKTOP CATEGORY NAV */}
       <nav className="hidden md:flex bg-blue-600 text-white text-sm font-medium">
         <div className="max-w-7xl mx-auto flex gap-6 px-4 py-2">

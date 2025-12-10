@@ -1,16 +1,74 @@
-// src/types/product.ts
+// types/product.ts
+
+export type ProductVariant = {
+  id: string;
+  sku?: string;
+  color?: string;
+  size?: string;
+  price?: number;
+  image?: string;
+  stock: number;
+};
+
+export type ProductImage = {
+  url: string;
+  alt?: string;
+};
+
+export type ProductSpec = {
+  label: string;
+  value: string;
+};
+
+// Chuẩn hoá để filter
+export type ProductAttributes = Record<string, string | number | boolean>;
 
 export type Product = {
   id: string;
-  name: string;
   slug: string;
-  price: number;
-  salePrice?: number; // Giá sale nếu có
-  rating?: number; // 0–5
-  reviewsCount?: number; // tổng số review
-  thumbnail?: string; // ảnh chính
-  category?: string; // danh mục
-  stock?: number; // tồn kho (cho Flash Sale)
-  brand?: string; // sau này gắn brand filter
-  description?: string; // mô tả detail page
+
+  name: string;
+  shortDescription?: string;
+  description: string;
+
+  basePrice: number;
+  salePrice?: number;
+
+  category: string;
+  subCategory?: string;
+  brand: string;
+
+  thumbnail: string;
+  images?: ProductImage[];
+
+  rating?: number;
+  reviewsCount?: number;
+
+  stock: number;
+  variants?: ProductVariant[];
+
+  discountPercent?: number;
+  isFlashSale?: boolean;
+  flashSaleEnd?: string;
+
+  weightKg?: number;
+  dimensions?: { w: number; h: number; l: number };
+
+  sellerId?: string;
+  warrantyPeriodMonths?: number;
+  returnPolicyDays?: number;
+
+  sku?: string;
+  gtin?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+
+  specs?: ProductSpec[];
+  attributes?: ProductAttributes; // filter engine
+
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+
+  status?: "active" | "hidden" | "draft" | "archived";
 };
