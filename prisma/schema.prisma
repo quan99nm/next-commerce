@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//////////////////////
+// ENUMS
+//////////////////////
+
+enum ProductStatus {
+  active
+  hidden
+  draft
+  archived
+}
+
+enum InventoryReason {
+  import
+  order
+  cancel
+  adjust
+}
+
+enum OrderStatus {
+  pending
+  paid
+  shipped
+  completed
+  cancelled
+}
+
+//////////////////////
+// CATEGORY
+//////////////////////
+
+model Category {
+  id   String @id @default(uuid())
+  name String
+  slug String @unique
+
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+}
+
+//////////////////////
+// BRAND
+//////////////////////
+
+model Brand {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  logo      String?
+  isActive  Boolean  @default(true) // 👈 THÊM DÒNG NÀY
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+//////////////////////
+// PRODUCT
+//////////////////////
+
+model Product {
+  id   String @id @default(uuid())
+  slug String @unique
+
+  name        String
+  shortDesc   String?
+  description String
+
+  basePrice Int
+  salePrice Int?
+
+  categoryId String
+  brandId    String
+
+  thumbnail String // Cloudflare R2 URL
+  images    Json? // [{ url, alt }]
+
+  rating       Float?
+  reviewsCount Int?
+
+  
+
+  discountPercent Int?
+  isFlashSale     Boolean   @default(false)
+  flashSaleEnd    DateTime?
+
+  weightKg   Float?
+  dimensions Json?
+
+  sku  String?
+  gtin String?
+
+  metaTitle       String?
+  metaDescription String?
+
+  specs      Json?
+  attributes Json? // filter engine
+
+  tags String[]
+
+  status ProductStatus @default(active)
+
+  category Category @relation(fields: [categoryId], references: [id])
+  brand    Brand    @relation(fields: [brandId], references: [id])
+
+  variants  ProductVariant[]
+  inventory Inventory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([basePrice])
+}
+
+//////////////////////
+// PRODUCT VARIANT
+//////////////////////
+
+model ProductVariant {
+  id        String @id @default(uuid())
+  productId String
+
+  sku   String?
+  color String?
+  size  String?
+  price Int?
+  image String?
+  stock Int
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+//////////////////////
+// INVENTORY (LEDGER)
+//////////////////////
+
+model Inventory {
+  id        String   @id @default(uuid())
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+
+  // Có thể mở rộng nhiều kho sau này
+  warehouse String   @default("default")
+
+  quantity  Int      // tồn kho thực
+  reserved  Int      @default(0) // đang giữ chỗ (checkout chưa xong)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, warehouse])
+}
+
+
+//////////////////////
+// ORDER
+//////////////////////
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String?     // null = guest
+
+  // Contact snapshot
+  email     String
+  phone     String
+  address  String
+
+  status    OrderStatus @default(pending)
+
+  subtotal  Int
+  shipping  Int
+  discount  Int
+  total     Int
+
+  items     OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//////////////////////
+// ORDER ITEM (SNAPSHOT)
+//////////////////////
+
+model OrderItem {
+  id      String @id @default(uuid())
+  orderId String
+
+  productId String
+  variantId String?
+  warehouse String  
+  name     String
+  price    Int
+  quantity Int
+
+  snapshot Json
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
